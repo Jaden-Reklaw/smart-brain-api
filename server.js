@@ -11,3 +11,11 @@ app.get('/', (req, res) => {
 app.listen(PORT, () => {
     console.log(`App listening on port ${PORT}`);
 });
+
+/*
+    --> res = this is working
+    signin --> POST = success/fail
+    register --> POST = user
+    profile/:userId --> GET = user
+    image --> PUT --> user
+*/
