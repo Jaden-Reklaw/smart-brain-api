@@ -9,10 +9,11 @@ app.use(express.urlencoded({extended: false}));
 app.use(express.json());
 app.use(cors());
 
+
 const database = {
     users: [
         {
-            id: '123',
+            id: '127',
             name: 'Kelsey',
             email: 'kel@aol.com',
             password: 'cookies',
@@ -59,20 +60,9 @@ app.get('/profile/:id', (req,res) => {
 
 //Post routes
 app.post('/signin', (req, res) => {
-    //comparing correct password against the hash that is generated
-    bcrypt.compare("apples", '$2a$10$Qcp6O0WRRLaOM00Qj7530OSrxx4eRzZ1taMkNi4twAJXo51hkP8AW', function(err, res) {
-        // res == true
-        console.log('first guess', res);
-    });
-    //comparing wrong password against the hash that is generated
-    bcrypt.compare("veggies", '$2a$10$Qcp6O0WRRLaOM00Qj7530OSrxx4eRzZ1taMkNi4twAJXo51hkP8AW', function(err, res) {
-        // res = false
-        console.log('second guess', res);
-    });
-    console.log(req.body);
     if(req.body.email === database.users[0].email && 
     req.body.password === database.users[0].password) {
-        res.json('success');
+        res.json(database.users[0]);
     } else {
         res.status(400).json('error logging in');
     }
@@ -80,6 +70,7 @@ app.post('/signin', (req, res) => {
 
 app.post('/register', (req, res) => {
     const{ email, name, password } = req.body;
+    console.log(req.body);
     //Creating hash after a post request of a new registered user
     bcrypt.hash(password, null, null, function(err, hash) {
         // Store hash in your password DB.
@@ -96,6 +87,7 @@ app.post('/register', (req, res) => {
     res.json(database.users[database.users.length -1]);
 });
 
+
 // Put routes
 app.put('/image/:id', (req, res) => {
     const { id } = req.params;
@@ -105,7 +97,7 @@ app.put('/image/:id', (req, res) => {
         if(user.id === id) {
             found = true;
             user.entries++;
-            res.json(user.entries);
+            return res.json(user.entries);
         }
     });
 
