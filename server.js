@@ -2,6 +2,7 @@ const express = require('express');
 const bcrypt = require('bcrypt-nodejs');
 const cors = require('cors');
 const knex = require('knex');
+const { response } = require('express');
 
 //Connect to the pg database using knex
 const db= knex({
@@ -55,21 +56,24 @@ app.get('/', (req, res) => {
     res.send(database.users);
 });
 
-app.get('/profile/:id', (req,res) => {
+app.get('/profile/:id', (req, res) => {
     const { id } = req.params;
-    let found = false;
+    console.log('id is', id);
 
-    database.users.forEach(user => {
-        if(user.id === id) {
-            found = true;
-            res.json(user);
+    db.select('*').from('users').where({id})
+    .then(user => {
+        //Need to do the if and else statement to not get
+        //an error on the promise
+        if(user.length) {
+            res.json(user[0]);
+        } else {
+            res.status(400).json('not found');
         }
-    });
+    }).catch(error => {
+        res.status(400).json('error getting user');
+    })
 
-    if(!found) {
-        res.status(404).json('no such user');
-    }
-})
+});
 
 //Post routes
 app.post('/signin', (req, res) => {
@@ -83,12 +87,18 @@ app.post('/signin', (req, res) => {
 
 app.post('/register', (req, res) => {
     const{ email, name, password } = req.body;
-    db('users').insert({
+    db('users').returning('*').insert({
         email: email,
         name: name,
         joined: new Date()
-    }).then(console.log);     
-    res.json(database.users[database.users.length -1]);
+    }).then(user => {
+        res.json(user[0]);
+    }).catch(error => {
+        //don't return the error so hackers can 
+        //find out what went wrong on your db
+        res.status(400).json('unable to register');
+    })   
+    
 });
 
 
