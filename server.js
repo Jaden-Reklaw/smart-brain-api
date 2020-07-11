@@ -21,43 +21,13 @@ app.use(express.urlencoded({extended: false}));
 app.use(express.json());
 app.use(cors());
 
-
-const database = {
-    users: [
-        {
-            id: '127',
-            name: 'Kelsey',
-            email: 'kel@aol.com',
-            password: 'cookies',
-            entries: 0,
-            joined: new Date()
-        },
-        {
-            id: '124',
-            name: 'Jordan',
-            email: 'Jor@aol.com',
-            password: 'bananas',
-            entries: 0,
-            joined: new Date()
-        },
-    ],
-    login: [
-       {
-           id:'987',
-           hash: '',
-           email:'kel@aol.com'
-       } 
-    ]
-}
-
 //Get routes
 app.get('/', (req, res) => {
-    res.send(database.users);
+    
 });
 
 app.get('/profile/:id', (req, res) => {
     const { id } = req.params;
-    console.log('id is', id);
 
     db.select('*').from('users').where({id})
     .then(user => {
@@ -76,7 +46,25 @@ app.get('/profile/:id', (req, res) => {
 
 //Post routes
 app.post('/signin', (req, res) => {
-    
+    const {email, password} = req.body;
+
+    db.select('email', 'hash')
+    .from('login')
+    .where('email', '=', email)
+    .then(data => {
+        const isValid = bcrypt.compareSync(password, data[0].hash);
+        if(isValid) {
+            return db.select('*').from('users')
+            .where('email', '=', email)
+            .then(user => {
+                res.json(user[0])
+            })
+            .catch(error => res.status(400).json('unable to get user'))
+        } else {
+            res.status(400).json('wrong credentials');
+        }
+    })
+    .catch(error => res.status(400).json('wrong credentials'));
 });
 
 app.post('/register', (req, res) => {
