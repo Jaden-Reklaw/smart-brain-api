@@ -3,17 +3,16 @@ const bcrypt = require('bcrypt-nodejs');
 const cors = require('cors');
 const knex = require('knex');
 
+//Connect to the pg database using knex
 const db= knex({
     client: 'pg',
     connection: {
       host : '127.0.0.1',
-      user : 'jordan',
+      user : 'jswalk117',
       password : '',
       database : 'smart-brain'
     }
 });
-
-console.log(db.select('*').from('users'));
 
 const app = express();
 const PORT = 3000;
@@ -50,6 +49,7 @@ const database = {
        } 
     ]
 }
+
 //Get routes
 app.get('/', (req, res) => {
     res.send(database.users);
@@ -83,20 +83,11 @@ app.post('/signin', (req, res) => {
 
 app.post('/register', (req, res) => {
     const{ email, name, password } = req.body;
-    console.log(req.body);
-    //Creating hash after a post request of a new registered user
-    bcrypt.hash(password, null, null, function(err, hash) {
-        // Store hash in your password DB.
-        console.log(hash);
-    });
-    database.users.push({
-        id: '125',
-        name: name,
+    db('users').insert({
         email: email,
-        password: password,
-        entries: 0,
+        name: name,
         joined: new Date()
-    });
+    }).then(console.log);     
     res.json(database.users[database.users.length -1]);
 });
 
