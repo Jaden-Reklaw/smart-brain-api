@@ -2,7 +2,6 @@ const express = require('express');
 const bcrypt = require('bcrypt-nodejs');
 const cors = require('cors');
 const knex = require('knex');
-const { response } = require('express');
 
 //Connect to the pg database using knex
 const db= knex({
@@ -77,57 +76,55 @@ app.get('/profile/:id', (req, res) => {
 
 //Post routes
 app.post('/signin', (req, res) => {
-    if(req.body.email === database.users[0].email && 
-    req.body.password === database.users[0].password) {
-        res.json(database.users[0]);
-    } else {
-        res.status(400).json('error logging in');
-    }
+    
 });
 
 app.post('/register', (req, res) => {
     const{ email, name, password } = req.body;
-    db('users').returning('*').insert({
-        email: email,
-        name: name,
-        joined: new Date()
-    }).then(user => {
-        res.json(user[0]);
-    }).catch(error => {
+    const hash = bcrypt.hashSync(password);
+    //Create a transaction using knex
+    db.transaction(trx => {
+        trx.insert({
+            hash: hash,
+            email: email
+        })
+        .into('login')
+        .returning('email')
+        .then(loginEmail => {
+            return trx('users')
+            .returning('*')
+            .insert({
+                email: loginEmail[0],
+                name: name,
+                joined: new Date()
+            })
+            .then(user => {
+                res.json(user[0]);
+            })
+        })
+        .then(trx.commit)
+        .catch(trx.rollback)
+    })
+    .catch(error => {
         //don't return the error so hackers can 
         //find out what went wrong on your db
         res.status(400).json('unable to register');
-    })   
-    
+    })       
 });
 
 
 // Put routes
 app.put('/image/:id', (req, res) => {
     const { id } = req.params;
-    let found = false;
-
-    database.users.forEach(user => {
-        if(user.id === id) {
-            found = true;
-            user.entries++;
-            return res.json(user.entries);
-        }
-    });
-
-    if(!found) {
-        res.status(404).json('no such user');
-    }
+   db('users').where('id', '=', id)
+   .increment('entries', 1)
+   .returning('entries')
+   .then(entries => {
+       res.json(entries[0]);
+   })
+   .catch(error => res.status(400).json('unable to get entries'));
 });
 
 app.listen(PORT, () => {
     console.log(`App listening on port ${PORT}`);
 });
-
-/*
-    --> res = this is working
-    signin --> POST = success/fail
-    register --> POST = user
-    profile/:userId --> GET = user
-    image --> PUT --> user
-*/
