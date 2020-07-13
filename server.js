@@ -28,16 +28,17 @@ app.use(express.json());
 app.use(cors());
 
 //Get routes
-app.get('/', (req, res) => {
-    
-});
+app.get('/', (req, res) => res.send('hello world'));
 
+//Using dependency injection you can pass bcrypt and db to the routes
 app.get('/profile/:id',(req, res) =>  profile.handleProfile(req, res, db));
 
 //Post routes
-app.post('/signin', (req, res) => signin.handleSignIn(req, res, db, bcrypt));
+//another way of doing it by passing req and res on the function in the module
+//checkout signin.js to see how the function is structured
+//both ways work just do which ever is less confusing
+app.post('/signin', signin.handleSignIn(db, bcrypt));
 
-//Using dependency injection
 app.post('/register',(req, res) => register.handleRegister(req, res, db, bcrypt));
 
 // Put routes
