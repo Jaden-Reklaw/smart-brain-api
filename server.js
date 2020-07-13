@@ -5,6 +5,8 @@ const knex = require('knex');
 
 //Add controllers to endpoints
 const register = require('./controllers/register');
+const profile = require('./controllers/profile');
+const signin = require('./controllers/signin');
 
 //Connect to the pg database using knex
 const db= knex({
@@ -29,62 +31,17 @@ app.get('/', (req, res) => {
     
 });
 
-app.get('/profile/:id', (req, res) => {
-    const { id } = req.params;
-
-    db.select('*').from('users').where({id})
-    .then(user => {
-        //Need to do the if and else statement to not get
-        //an error on the promise
-        if(user.length) {
-            res.json(user[0]);
-        } else {
-            res.status(400).json('not found');
-        }
-    }).catch(error => {
-        res.status(400).json('error getting user');
-    })
-
-});
+app.get('/profile/:id',(req, res) =>  profile.handleProfile(req, res, db));
 
 //Post routes
-app.post('/signin', (req, res) => {
-    const {email, password} = req.body;
-
-    db.select('email', 'hash')
-    .from('login')
-    .where('email', '=', email)
-    .then(data => {
-        const isValid = bcrypt.compareSync(password, data[0].hash);
-        if(isValid) {
-            return db.select('*').from('users')
-            .where('email', '=', email)
-            .then(user => {
-                res.json(user[0])
-            })
-            .catch(error => res.status(400).json('unable to get user'))
-        } else {
-            res.status(400).json('wrong credentials');
-        }
-    })
-    .catch(error => res.status(400).json('wrong credentials'));
-});
+app.post('/signin', (req, res) => signin.handleSignIn(req, res, db, bcrypt));
 
 //Using dependency injection
-app.post('/register',(req, res) => {register.handleRegister(req, res, db, bcrypt)});
+app.post('/register',(req, res) => register.handleRegister(req, res, db, bcrypt));
 
 
 // Put routes
-app.put('/image/:id', (req, res) => {
-    const { id } = req.params;
-   db('users').where('id', '=', id)
-   .increment('entries', 1)
-   .returning('entries')
-   .then(entries => {
-       res.json(entries[0]);
-   })
-   .catch(error => res.status(400).json('unable to get entries'));
-});
+app.put('/image/:id', (req, res) => image.handleImage(req, res, db));
 
 app.listen(PORT, () => {
     console.log(`App listening on port ${PORT}`);
