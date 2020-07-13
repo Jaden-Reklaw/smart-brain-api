@@ -7,6 +7,7 @@ const knex = require('knex');
 const register = require('./controllers/register');
 const profile = require('./controllers/profile');
 const signin = require('./controllers/signin');
+const image = require('./controllers/image');
 
 //Connect to the pg database using knex
 const db= knex({
@@ -38,7 +39,6 @@ app.post('/signin', (req, res) => signin.handleSignIn(req, res, db, bcrypt));
 
 //Using dependency injection
 app.post('/register',(req, res) => register.handleRegister(req, res, db, bcrypt));
-
 
 // Put routes
 app.put('/image/:id', (req, res) => image.handleImage(req, res, db));
