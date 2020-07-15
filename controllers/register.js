@@ -31,7 +31,7 @@ const handleRegister = (req, res, db, bcrypt) => {
     .catch(error => {
         //don't return the error so hackers can 
         //find out what went wrong on your db
-        res.status(400).json('unable to register');
+        res.status(400).json(error);
     })       
 }
 
