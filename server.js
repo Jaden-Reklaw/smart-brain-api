@@ -8,6 +8,7 @@ const register = require('./controllers/register');
 const profile = require('./controllers/profile');
 const signin = require('./controllers/signin');
 const image = require('./controllers/image');
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0;
 
 //Connect to the pg database using knex
 const db= knex({
