@@ -41,6 +41,9 @@ app.post('/signin', signin.handleSignIn(db, bcrypt));
 
 app.post('/register',(req, res) => register.handleRegister(req, res, db, bcrypt));
 
+//POST for API request to Clarifai
+app.post('/imageurl', (req, res) => image.handleApiCall(req, res));
+
 // Put routes
 app.put('/image/:id', (req, res) => image.handleImage(req, res, db));
 
